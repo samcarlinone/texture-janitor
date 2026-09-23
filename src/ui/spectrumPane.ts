@@ -86,6 +86,14 @@ export class SpectrumPaneController extends PaneController {
     }
   }
 
+  protected toolCancel(): void {
+    if (this.stroking) {
+      this.stroking = false
+      this.engine.cancelStroke()
+    }
+    this.drag = null
+  }
+
   protected toolUp(): void {
     if (this.stroking) {
       this.stroking = false

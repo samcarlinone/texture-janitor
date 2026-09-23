@@ -756,43 +756,80 @@
   }
 }
 
+/* ---- hold-to-compare buttons ---- */
+/* Held down on touch screens: no long-press callout or text selection, and
+   no scrolling the controls (which would cancel the press). */
+.hold {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
 /* ---- image region outline ---- */
-/* A ring (the padding band) around the region, readable on any image. Two
-   animations run in opposite phase: the backdrop invert rises while a solid
-   fill fades, so the ring cycles black -> inverted -> white -> inverted.
-   The fill swaps black/white only while fully transparent, so it never
-   passes through grey. The mask removes the interior, leaving the pixels
-   inside the region untouched. */
+/* A ring around the region, readable on any image. Two animations run in
+   opposite phase: an invert layer rises while a solid fill fades, so the
+   ring cycles black -> inverted -> white -> inverted. The fill swaps
+   black/white only while fully transparent, so it never passes through
+   grey. The ring is four edge strips, leaving the pixels inside the region
+   untouched.
+   The invert is white blended with `difference` (at opacity t, the same as
+   invert(t)), not backdrop-filter: iOS Safari doesn't clip backdrop-filter
+   to a mask, and doesn't apply it to the thin strips at all. */
 .region-ring {
+  --ring: 3px; /* keep in sync with RING in imagePane.ts */
   position: absolute;
   display: none;
-  box-sizing: border-box;
-  padding: 3px; /* ring width: keep in sync with RING in imagePane.ts */
   pointer-events: none;
-  backdrop-filter: invert(1);
-  -webkit-backdrop-filter: invert(1);
-  mask:
-    linear-gradient(#000 0 0) content-box exclude,
-    linear-gradient(#000 0 0);
-  -webkit-mask:
-    linear-gradient(#000 0 0) content-box,
-    linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  animation:
-    ring-invert 6s ease-in-out infinite,
-    ring-fill 6s ease-in-out infinite;
+}
+.region-ring > i {
+  position: absolute;
+}
+.region-ring > i::before,
+.region-ring > i::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+.region-ring > i::before {
+  background: #fff;
+  mix-blend-mode: difference;
+  animation: ring-invert 6s ease-in-out infinite;
+}
+.region-ring > i::after {
+  animation: ring-fill 6s ease-in-out infinite;
+}
+.region-ring > i:nth-child(-n + 2) {
+  left: 0;
+  right: 0;
+  height: var(--ring);
+}
+.region-ring > i:nth-child(1) {
+  top: 0;
+}
+.region-ring > i:nth-child(2) {
+  bottom: 0;
+}
+.region-ring > i:nth-child(n + 3) {
+  top: var(--ring);
+  bottom: var(--ring);
+  width: var(--ring);
+}
+.region-ring > i:nth-child(3) {
+  left: 0;
+}
+.region-ring > i:nth-child(4) {
+  right: 0;
 }
 @keyframes ring-invert {
   0%,
   50%,
   100% {
-    backdrop-filter: invert(0);
-    -webkit-backdrop-filter: invert(0);
+    opacity: 0;
   }
   25%,
   75% {
-    backdrop-filter: invert(1);
-    -webkit-backdrop-filter: invert(1);
+    opacity: 1;
   }
 }
 @keyframes ring-fill {
@@ -819,7 +856,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .region-ring {
+  /* Just the invert. */
+  .region-ring > i::before,
+  .region-ring > i::after {
     animation: none;
   }
 }

@@ -1308,6 +1308,16 @@ export class Engine {
     this.syncInfo()
   }
 
+  /** Abandon the current stroke (e.g. it turned into a two-finger pinch), leaving no trace in the spectrum or history. */
+  cancelStroke(): void {
+    if (!this.edits) return
+    this.brush = null
+    this.lastDab = null
+    const dirty = this.edits.cancel()
+    if (dirty) this.edited(dirty)
+    this.syncInfo()
+  }
+
   // ---- spectrum channel ----------------------------------------------------------
 
   /** Show the luminance spectrum or one colour channel's. Display only: edits still apply to all channels. */

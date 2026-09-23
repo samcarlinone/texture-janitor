@@ -26,6 +26,10 @@ export abstract class PaneController {
    * release arrive even outside the pane or the window.
    */
   private gesture: { id: number; kind: 'pan' | 'tool'; x: number; y: number } | null = null
+  /** Touch points on the pane (CSS px), captured, so each one's release arrives. */
+  private touches = new Map<number, [number, number]>()
+  /** Two-finger pinch in progress: finger spacing and midpoint at the last move. */
+  private pinch: { dist: number; mid: [number, number] } | null = null
   /** Cursor for the current tool, restored after a pan. */
   private toolCursor = ''
   private readonly ro: ResizeObserver
@@ -51,7 +55,10 @@ export abstract class PaneController {
     on('pointercancel', (e) => this.release(e))
     // Capture can also be lost without a pointerup (window blur, the
     // element going away): that ends the gesture too.
-    on('lostpointercapture', (e) => this.end(e))
+    on('lostpointercapture', (e) => {
+      this.touchUp(e)
+      this.end(e)
+    })
     on('pointerleave', () => {
       this.pointer = null
       this.onHover(null)
@@ -79,6 +86,8 @@ export abstract class PaneController {
   protected abstract toolDown(e: PointerEvent, x: number, y: number): boolean
   protected abstract toolMove(e: PointerEvent, x: number, y: number): void
   protected abstract toolUp(e: PointerEvent): void
+  /** Abandon the tool gesture without applying it (a second finger turned it into a pinch). */
+  protected abstract toolCancel(): void
   /** Pointer moved over content point (x, y), or left the pane. */
   protected abstract onHover(p: [number, number] | null): void
 
@@ -158,8 +167,19 @@ export abstract class PaneController {
   }
 
   private down(e: PointerEvent): void {
-    // One gesture at a time; extra pointers (a second finger, pen + mouse) are ignored.
-    if (!this.view || this.gesture) return
+    if (!this.view) return
+    if (e.pointerType === 'touch') {
+      this.touches.set(e.pointerId, this.local(e))
+      this.root.setPointerCapture(e.pointerId)
+      if (this.touches.size === 2) {
+        this.startPinch()
+        e.preventDefault()
+        return
+      }
+      if (this.touches.size > 2) return
+    }
+    // One gesture at a time; other extra pointers (pen + mouse) are ignored.
+    if (this.gesture) return
     if (e.button !== 0 && e.button !== 1 && e.button !== 2) return
     const [sx, sy] = this.local(e)
     // Middle or right drag pans; the left button belongs to the active tool.
@@ -175,7 +195,44 @@ export abstract class PaneController {
     e.preventDefault()
   }
 
+  /** A second finger landed: drop the first finger's gesture and pan / zoom with both. */
+  private startPinch(): void {
+    const g = this.gesture
+    if (g) {
+      this.gesture = null
+      if (g.kind === 'tool') this.toolCancel()
+      else this.root.style.cursor = this.toolCursor
+    }
+    this.pinch = this.pinchState()
+    this.invalidate(this.canvases.length - 1)
+  }
+
+  private pinchState(): { dist: number; mid: [number, number] } {
+    const [[ax, ay], [bx, by]] = [...this.touches.values()]
+    return { dist: Math.max(1, Math.hypot(bx - ax, by - ay)), mid: [(ax + bx) / 2, (ay + by) / 2] }
+  }
+
+  /** A touch point lifted (or lost capture). True if it was part of a pinch, which then ends. */
+  private touchUp(e: PointerEvent): boolean {
+    if (!this.touches.delete(e.pointerId) || !this.pinch) return false
+    if (this.root.hasPointerCapture(e.pointerId)) this.root.releasePointerCapture(e.pointerId)
+    // The finger left behind does nothing until it lifts too.
+    if (this.touches.size < 2) this.pinch = null
+    return true
+  }
+
   private move(e: PointerEvent): void {
+    if (this.touches.has(e.pointerId)) this.touches.set(e.pointerId, this.local(e))
+    const pinch = this.pinch
+    if (pinch) {
+      if (!this.touches.has(e.pointerId) || !this.view) return
+      const next = this.pinchState()
+      // Pan with the midpoint, then zoom about it by the change in finger spacing.
+      const panned = panBy(this.view, next.mid[0] - pinch.mid[0], next.mid[1] - pinch.mid[1])
+      this.setView(zoomAt(panned, next.mid[0], next.mid[1], this.cssW, this.cssH, next.dist / pinch.dist))
+      this.pinch = next
+      return
+    }
     const g = this.gesture
     if (g && g.id !== e.pointerId) return
     // A mouse gesture whose buttons are all up missed its release (it can
@@ -213,7 +270,11 @@ export abstract class PaneController {
 
   /** pointerup / pointercancel: drop capture and finish the gesture. */
   private release(e: PointerEvent): void {
-    if (this.gesture?.id !== e.pointerId) return
+    if (this.touchUp(e)) return
+    if (this.gesture?.id !== e.pointerId) {
+      if (this.root.hasPointerCapture(e.pointerId)) this.root.releasePointerCapture(e.pointerId)
+      return
+    }
     if (this.root.hasPointerCapture(e.pointerId)) this.root.releasePointerCapture(e.pointerId)
     this.end(e)
   }

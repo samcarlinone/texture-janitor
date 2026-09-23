@@ -97,7 +97,12 @@ export function ImagePaneView(
     <PaneFrame title={p.title} tour="image" toolbar={p.toolbar} hover={hover} ctrl={() => ctrl.current}>
       <div className="pane-body" ref={root}>
         <canvas ref={canvas} />
-        <div ref={ring} className="region-ring" />
+        <div ref={ring} className="region-ring">
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
         {p.empty}
       </div>
       {p.floating}

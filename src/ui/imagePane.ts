@@ -22,7 +22,7 @@ const LOUPE = { size: 168, pixel: 10, gap: 22 }
  * `speed` (CSS px per second, measured over `window` ms) for `hold` ms.
  */
 const SLOW = { speed: 4, window: 500, hold: 2000 }
-/** Width of the region outline, CSS px (must match .region-ring padding). */
+/** Width of the region outline, CSS px (must match --ring in .region-ring). */
 const RING = 3
 
 export class ImagePaneController extends PaneController {
@@ -124,6 +124,13 @@ export class ImagePaneController extends PaneController {
     // Keep a little more history than the speed window needs.
     while (this.trail.length > 2 && this.trail[1].t < now - 2 * SLOW.window) this.trail.shift()
     this.checkSlow()
+    this.invalidate(0)
+  }
+
+  protected toolCancel(): void {
+    this.drag = null
+    this.slowDrag = false
+    clearInterval(this.slowTimer)
     this.invalidate(0)
   }
 

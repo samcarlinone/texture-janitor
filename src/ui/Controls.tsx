@@ -462,8 +462,11 @@ export function Controls({
           ).map(([target, label, key]) => (
             <Button
               key={target}
+              className="hold"
               kbd={key}
               disabled={!ready}
+              // A long press would otherwise open the context menu (Android) or callout (iOS).
+              onContextMenu={(e) => e.preventDefault()}
               onPointerDown={(e) => {
                 // Capture, so the release ends the compare wherever it happens.
                 e.currentTarget.setPointerCapture(e.pointerId)

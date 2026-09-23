@@ -222,6 +222,16 @@ export class EditField {
     return true
   }
 
+  /** Abandon the stroke, restoring every bin it touched. Returns what to redraw, or null if nothing changed. */
+  cancel(): Dirty | null {
+    const s = this.stroke
+    this.stroke = null
+    if (!s || s.tiles.size === 0) return null
+    for (const [k, t] of s.tiles) this.copyTile(k, t, true)
+    this.markDirty(s.tiles.keys())
+    return this.dirtyFor(s.tiles)
+  }
+
   /**
    * The multiplier as sparse tiles (only tiles holding a non-identity bin),
    * for parking this field's working edits while another checkpoint is active.
@@ -459,7 +469,7 @@ export class EditField {
     e.rev++
     this.markDirty(e.tiles.keys())
     to.push(e)
-    return this.dirtyFor(e)
+    return this.dirtyFor(e.tiles)
   }
 
   private markDirty(keys: Iterable<number>): void {
@@ -467,10 +477,10 @@ export class EditField {
     for (const k of keys) this.dirty.add(k)
   }
 
-  private dirtyFor(e: UndoEntry): Dirty {
-    if (e.tiles.size > this.nTiles / 8) return 'all'
+  private dirtyFor(tiles: ReadonlyMap<number, unknown>): Dirty {
+    if (tiles.size > this.nTiles / 8) return 'all'
     const rects: Rect[] = []
-    for (const key of e.tiles.keys()) {
+    for (const key of tiles.keys()) {
       const tile = key % this.nTiles
       const tx = tile % this.tilesX
       const ty = (tile / this.tilesX) | 0

@@ -222,18 +222,52 @@ function useTargetRect(selector: string | undefined): DOMRect | null {
   return selector ? rect : null
 }
 
-function cardPosition(r: DOMRect | null, inside: boolean, cardH: number): { left: number; top: number } {
+interface CardBox {
+  left: number
+  top: number
+  width: number
+  /** Set when the card has to scroll to stay out of the target. */
+  maxHeight?: number
+}
+
+/** Phone layout: image pane, controls, spectrum pane stacked (see App.css). */
+const isNarrow = () => window.matchMedia('(max-width: 900px)').matches
+
+function cardPosition(r: DOMRect | null, inside: boolean, cardH: number): CardBox {
   const vw = window.innerWidth
   const vh = window.innerHeight
+  if (isNarrow()) return narrowCardPosition(r, cardH, vw, vh)
   const clamp = (left: number, top: number) => ({
     left: Math.max(GAP, Math.min(vw - CARD_W - GAP, left)),
     top: Math.max(GAP, Math.min(vh - cardH - GAP, top)),
+    width: CARD_W,
   })
   if (!r) return clamp((vw - CARD_W) / 2, vh / 2 - cardH / 2)
   if (inside) return clamp(r.left + GAP, r.bottom - cardH - GAP)
   if (r.right + GAP + CARD_W < vw) return clamp(r.right + GAP, r.top)
   if (r.left - GAP - CARD_W > 0) return clamp(r.left - GAP - CARD_W, r.top)
   return clamp(r.left, r.bottom + GAP)
+}
+
+/**
+ * On a phone the card can't sit beside anything, and inside a pane it
+ * covers what the step asks you to work on. Put it above or below the
+ * target instead (below if it fits, else the roomier side), scrolling if
+ * it's too tall for that space.
+ */
+function narrowCardPosition(r: DOMRect | null, cardH: number, vw: number, vh: number): CardBox {
+  const width = Math.min(CARD_W, vw - 2 * GAP)
+  const left = (vw - width) / 2
+  if (!r) return { left, top: Math.max(GAP, (vh - cardH) / 2), width }
+  const below = vh - r.bottom - 2 * GAP
+  const above = r.top - 2 * GAP
+  // The target fills the screen: overlap its lower part rather than vanish.
+  if (Math.max(below, above) < 120) {
+    const h = Math.min(cardH, vh * 0.4)
+    return { left, top: vh - GAP - h, width, maxHeight: h }
+  }
+  if (below >= cardH || below >= above) return { left, top: r.bottom + GAP, width, maxHeight: below }
+  return { left, top: Math.max(GAP, r.top - GAP - Math.min(cardH, above)), width, maxHeight: above }
 }
 
 /** The highlight ring: 4 px outside the target, kept on screen. */
@@ -347,7 +381,7 @@ export function Tutorial({ onClose, ...ctx }: TutorialProps) {
         className="tour-card"
         role="dialog"
         aria-label={step.title}
-        style={{ left: pos.left, top: pos.top, width: CARD_W }}
+        style={{ ...pos, overflowY: pos.maxHeight === undefined ? undefined : 'auto' }}
         ref={(el) => {
           if (el && Math.abs(el.offsetHeight - cardH) > 1) setCardH(el.offsetHeight)
         }}
