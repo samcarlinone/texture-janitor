@@ -160,6 +160,11 @@ export abstract class PaneController {
     return [e.clientX - r.left, e.clientY - r.top]
   }
 
+  /** A pan (middle / right drag) or two-finger pinch is in progress. */
+  protected get panning(): boolean {
+    return this.gesture?.kind === 'pan' || this.pinch !== null
+  }
+
   /** Set the cursor for the active tool (kept while not panning). */
   protected setCursor(c: string): void {
     this.toolCursor = c
@@ -217,7 +222,10 @@ export abstract class PaneController {
     if (!this.touches.delete(e.pointerId) || !this.pinch) return false
     if (this.root.hasPointerCapture(e.pointerId)) this.root.releasePointerCapture(e.pointerId)
     // The finger left behind does nothing until it lifts too.
-    if (this.touches.size < 2) this.pinch = null
+    if (this.touches.size < 2) {
+      this.pinch = null
+      this.invalidate(this.canvases.length - 1)
+    }
     return true
   }
 

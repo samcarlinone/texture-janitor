@@ -221,7 +221,7 @@ export class SpectrumPaneController extends PaneController {
     }
 
     const isBrush = p.tool !== 'select'
-    if (isBrush && this.pointer && !p.blocked) {
+    if (isBrush && this.pointer && !p.blocked && !this.panning) {
       const [px, py] = this.pointer
       const [x, y] = this.toContent(px, py)
       const r = Math.max(0.5, p.brush.radius) * view.zoom

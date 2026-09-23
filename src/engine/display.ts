@@ -27,7 +27,7 @@ export interface RenderOptions {
 const MIN_LEVEL = 128
 
 // Keep in sync with --cut / --boost in index.css.
-const TINT_CUT = [255, 96, 64]
+const TINT_CUT = [94, 224, 255]
 const TINT_BOOST = [74, 222, 128]
 
 /**

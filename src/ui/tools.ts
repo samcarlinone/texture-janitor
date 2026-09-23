@@ -27,7 +27,7 @@ export const TOOLS: ToolDef[] = [
 
 /** CSS colour of each tone (see index.css). */
 export const TONE_COLOR: Record<ToolDef['tone'], string> = {
-  cut: '#ff6040',
+  cut: '#5ee0ff',
   boost: '#4ade80',
   accent: '#5ee0ff',
 }
