@@ -4,6 +4,7 @@ import {
   TriangleAlert,
   ChevronRight,
   GraduationCap,
+  Minimize2,
   Circle,
   Download,
   Eraser,
@@ -16,7 +17,6 @@ import {
   Square,
   Trash2,
   Undo2,
-  type LucideIcon,
 } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import type { ColormapName } from '../engine/colormap.ts'
@@ -24,6 +24,7 @@ import type { EngineInfo } from '../engine/engine.ts'
 import type { Shape } from '../engine/layout.ts'
 import type { SpectrumTool } from './spectrumPane.ts'
 import { Button } from './Button.tsx'
+import { Segmented } from './Segmented.tsx'
 import { TOOLS } from './tools.ts'
 
 export interface ControlState {
@@ -84,6 +85,8 @@ interface Props {
   /** Phone layout only: hide pane headers/zoom controls and coordinate footers. */
   compactPanes: boolean
   setCompactPanes: (on: boolean) => void
+  /** Phone layout only: hide this panel (a floating button on the image brings it back). */
+  hide: () => void
 }
 
 
@@ -93,6 +96,7 @@ function Section({
   aside,
   collapsible = false,
   storageKey,
+  className,
 }: {
   title: string
   children: ReactNode
@@ -100,6 +104,7 @@ function Section({
   collapsible?: boolean
   /** Remembers the open state (per browser) under this localStorage key. */
   storageKey?: string
+  className?: string
 }) {
   const [open, setOpen] = useState(() => {
     if (!collapsible) return true
@@ -119,7 +124,7 @@ function Section({
     }
   }
   return (
-    <section className={`ctl-section ${collapsible && !open ? 'collapsed' : ''}`}>
+    <section className={`ctl-section ${collapsible && !open ? 'collapsed' : ''} ${className ?? ''}`}>
       <h3>
         {collapsible ? (
           <button type="button" className="section-toggle" aria-expanded={open} onClick={toggle}>
@@ -162,28 +167,6 @@ function Slider(p: {
   )
 }
 
-function Segmented<T extends string>(p: {
-  value: T
-  options: { id: T; label: string; icon?: LucideIcon }[]
-  onChange: (v: T) => void
-}) {
-  return (
-    <div className="segmented">
-      {p.options.map((o) => (
-        <button
-          key={o.id}
-          type="button"
-          className={o.id === p.value ? 'on' : ''}
-          onClick={() => p.onChange(o.id)}
-        >
-          {o.icon && <o.icon size={14} aria-hidden />}
-          <span className="text-trim">{o.label}</span>
-        </button>
-      ))}
-    </div>
-  )
-}
-
 function fmtMs(ms: number): string {
   return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${ms.toFixed(0)} ms`
 }
@@ -200,6 +183,7 @@ export function Controls({
   footer,
   compactPanes,
   setCompactPanes,
+  hide,
   project,
   projectWarning,
 }: Props) {
@@ -210,8 +194,11 @@ export function Controls({
   return (
     <aside className="controls">
       <div className="brand">
-        <h1>Texture Janitor</h1>
-        <p>Fourier-domain image editor</p>
+        <div>
+          <h1>Texture Janitor</h1>
+          <p>Fourier-domain image editor</p>
+        </div>
+        <Button className="mobile-only" icon={Minimize2} onClick={hide} title="Hide controls" aria-label="Hide controls" />
       </div>
       {info.subregion && (
         <div className="subregion-banner" role="status">
@@ -330,6 +317,15 @@ export function Controls({
                 onChange={(v) => set({ gain: Math.exp(v) })}
               />
             )}
+            {sel && (
+              <Button
+                icon={Paintbrush}
+                onClick={a.applyInside}
+                title="Apply the current brush tool and strength to the whole selection"
+              >
+                Apply to selection
+              </Button>
+            )}
             <p className="hint">Edits mirror through the centre automatically, so the image stays real-valued.</p>
           </>
         )}
@@ -343,6 +339,27 @@ export function Controls({
               ]}
               onChange={(v) => set({ selShape: v })}
             />
+            {sel && (
+              <>
+                <Slider
+                  label="Spotlight"
+                  title="Darkens the image where the selected frequencies are weak"
+                  value={s.heatOpacity}
+                  min={0}
+                  max={1}
+                  display={`${Math.round(s.heatOpacity * 100)}%`}
+                  onChange={(v) => set({ heatOpacity: v })}
+                />
+                <div className="row wrap">
+                  <Button icon={Eraser} onClick={a.removeSelected} title="Notch out the selected frequencies (Delete)">
+                    Remove
+                  </Button>
+                  <Button icon={Focus} onClick={a.keepSelected} title="Remove everything except the selection (DC is kept)">
+                    Keep only
+                  </Button>
+                </div>
+              </>
+            )}
             <Slider
               label="Feather"
               value={s.feather}
@@ -351,6 +368,13 @@ export function Controls({
               display={`${s.feather.toFixed(1)} bins`}
               onChange={(v) => set({ feather: v })}
             />
+            {sel && (
+              <div className="row">
+                <Button icon={Trash2} kbd="Esc" title="Clear the spectrum selection (Esc)" onClick={a.clearSelection}>
+                  Clear selection
+                </Button>
+              </div>
+            )}
             <p className="hint">Drag on the spectrum; Shift for a circle or square. The image shows where those frequencies live.</p>
           </>
         )}
@@ -359,54 +383,13 @@ export function Controls({
       <Section
         title="Isolate"
         aside={
-          sel || info.region ? (
-            <Button
-              icon={Trash2}
-              kbd="Esc"
-              title="Clear the spectrum selection and the picked region (Esc)"
-              onClick={() => {
-                a.clearSelection()
-                a.clearRegion()
-              }}
-            >
+          info.region ? (
+            <Button icon={Trash2} kbd="Esc" title="Clear the picked image region (Esc)" onClick={a.clearRegion}>
               Clear
             </Button>
           ) : null
         }
       >
-        <div className="sub">Spectrum → image</div>
-        {sel ? (
-          <>
-            <Slider
-              label="Spotlight"
-              title="Darkens the image where the selected frequencies are weak"
-              value={s.heatOpacity}
-              min={0}
-              max={1}
-              display={`${Math.round(s.heatOpacity * 100)}%`}
-              onChange={(v) => set({ heatOpacity: v })}
-            />
-            <div className="row wrap">
-              <Button icon={Eraser} onClick={a.removeSelected} title="Notch out the selected frequencies (Delete)">
-                Remove
-              </Button>
-              <Button icon={Focus} onClick={a.keepSelected} title="Remove everything except the selection (DC is kept)">
-                Keep only
-              </Button>
-              <Button
-                icon={Paintbrush}
-                onClick={a.applyInside}
-                disabled={!isBrush}
-                title="Apply the current brush tool and strength to the whole selection"
-              >
-                Apply brush
-              </Button>
-            </div>
-          </>
-        ) : (
-          <p className="hint">Use Select (S) on the spectrum.</p>
-        )}
-        <div className="sub">Image → spectrum</div>
         {info.region ? (
           <>
             <Segmented
@@ -578,7 +561,7 @@ export function Controls({
         </label>
       </Section>
 
-      <Section title="Shortcuts" collapsible storageKey="tj.shortcuts.open">
+      <Section title="Shortcuts" className="desktop-only" collapsible storageKey="tj.shortcuts.open">
         <dl className="shortcuts">
           <dt>Wheel / pinch</dt>
           <dd>Zoom at cursor</dd>

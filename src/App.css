@@ -22,6 +22,7 @@
 
 /* ---- panes ---- */
 .pane {
+  position: relative;
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -48,6 +49,8 @@
 .pane-tools {
   display: flex;
   gap: 4px;
+  /* Fixed, so the zoom buttons are the same height with or without the channel switch beside them. */
+  height: 27px;
 }
 .pane-tools button {
   padding: 2px 8px;
@@ -151,6 +154,10 @@
   min-height: 0;
 }
 .brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   padding: 12px 16px 10px;
   border-bottom: 1px solid var(--line);
 }
@@ -321,6 +328,10 @@
   color: var(--text);
   padding: 5px 4px;
   font-size: 12px;
+}
+/* Text-only options are shorter than ones with an icon (the label is trimmed to its glyphs). */
+.segmented button:not(:has(svg)) {
+  padding-block: 8px;
 }
 .segmented button + button {
   border-left: 1px solid var(--line);
@@ -841,23 +852,10 @@
 
 /* ---- spectrum channel switch (L / R / G / B) ---- */
 .channel-switch {
-  display: flex;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  overflow: hidden;
   margin-right: 4px;
 }
-.pane-tools .channel-switch button {
-  min-width: 26px;
-  padding: 2px 7px;
-  border: none;
-  border-radius: 0;
-  background: transparent;
-  font: 600 11px var(--mono);
-  color: var(--text-dim);
-}
-.pane-tools .channel-switch button + button {
-  border-left: 1px solid var(--line);
+.channel-switch button {
+  min-width: 28px;
 }
 .channel-switch .ch-r {
   --ch: #ff6b6b;
@@ -871,7 +869,7 @@
 .channel-switch .ch-l {
   --ch: var(--text-hi);
 }
-.pane-tools .channel-switch button.on {
+.segmented.channel-switch button.on {
   color: var(--ch);
   background: color-mix(in srgb, var(--ch) 16%, transparent);
 }
@@ -999,4 +997,44 @@
 .compact-toggle-like input {
   flex: none;
   margin-top: 2px;
+}
+
+/* ---- phone-only hideable controls row ---- */
+.show-controls {
+  display: none;
+  position: absolute;
+  right: 10px;
+  /* Above the pane footer (26px). */
+  bottom: 36px;
+  z-index: 4;
+  height: 36px;
+  width: 36px;
+  padding: 0;
+  justify-content: center;
+  background: rgba(21, 22, 27, 0.92);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+@media (max-width: 900px) {
+  .app.controls-hidden {
+    grid-template-rows: 1fr 1fr;
+  }
+  .app.controls-hidden .controls {
+    display: none;
+  }
+  .app.controls-hidden .show-controls {
+    display: flex;
+  }
+  /* Compact panes hide the footer, so sit in the corner. */
+  .app.compact-panes .show-controls {
+    bottom: 10px;
+  }
+}
+
+/* ---- phone layout: no keyboard, so no shortcut hints ---- */
+@media (max-width: 900px) {
+  .desktop-only,
+  .btn kbd,
+  .tool kbd {
+    display: none;
+  }
 }

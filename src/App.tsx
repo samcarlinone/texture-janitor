@@ -1,3 +1,4 @@
+import { SlidersHorizontal } from 'lucide-react'
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import './App.css'
 import { makeLut } from './engine/colormap.ts'
@@ -5,6 +6,7 @@ import { denoiseDefaults } from './denoise/index.ts'
 import { Engine, type DenoiseSettings } from './engine/engine.ts'
 import { Controls, type ControlActions, type ControlState } from './ui/Controls.tsx'
 import { Button } from './ui/Button.tsx'
+import { Segmented } from './ui/Segmented.tsx'
 import { DenoisePanel } from './ui/DenoisePanel.tsx'
 import { MemoryMeter } from './ui/MemoryMeter.tsx'
 import { makeDemo } from './ui/demo.ts'
@@ -120,6 +122,8 @@ export default function App() {
       // Storage unavailable (private mode): the choice lasts for this visit.
     }
   }
+  // Phone layout only: the controls row can be hidden to give the panes the whole screen.
+  const [controlsHidden, setControlsHidden] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
   const imageCtrl = useRef<ImagePaneController | null>(null)
@@ -207,6 +211,7 @@ export default function App() {
     startTour: () => {
       answerTourPrompt('started')
       setToast(false)
+      setControlsHidden(false)
       setTouring(true)
     },
   }
@@ -337,33 +342,29 @@ export default function App() {
     ) : null
 
   const channels = (
-    <div className="channel-switch" role="radiogroup" aria-label="Spectrum channel">
-      {(
+    <Segmented
+      className="channel-switch"
+      aria-label="Spectrum channel"
+      value={info.spectrumChannel}
+      disabled={!ready}
+      options={(
         [
           ['l', 'L', 'Luminance'],
           ['r', 'R', 'Red channel'],
           ['g', 'G', 'Green channel'],
           ['b', 'B', 'Blue channel'],
         ] as const
-      ).map(([id, label, name]) => (
-        <button
-          key={id}
-          type="button"
-          role="radio"
-          aria-checked={info.spectrumChannel === id}
-          className={`ch-${id} ${info.spectrumChannel === id ? 'on' : ''}`}
-          disabled={!ready}
-          title={
-            id === 'l'
-              ? 'Luminance spectrum: edits apply to all channels together'
-              : `${name} spectrum: edits apply to the ${name.toLowerCase().replace(' channel', '')} channel only`
-          }
-          onClick={() => void engine.setSpectrumChannel(id)}
-        >
-          <span className="text-trim">{label}</span>
-        </button>
-      ))}
-    </div>
+      ).map(([id, label, name]) => ({
+        id,
+        label,
+        className: `ch-${id}`,
+        title:
+          id === 'l'
+            ? 'Luminance spectrum: edits apply to all channels together'
+            : `${name} spectrum: edits apply to the ${name.toLowerCase().replace(' channel', '')} channel only`,
+      }))}
+      onChange={(id) => void engine.setSpectrumChannel(id)}
+    />
   )
 
   const empty =
@@ -391,7 +392,7 @@ export default function App() {
 
   return (
     <div
-      className={`app ${dragOver ? 'drag-over' : ''} ${compactPanes ? 'compact-panes' : ''}`}
+      className={`app ${dragOver ? 'drag-over' : ''} ${compactPanes ? 'compact-panes' : ''} ${controlsHidden ? 'controls-hidden' : ''}`}
       onDragOver={(e) => {
         e.preventDefault()
         setDragOver(true)
@@ -437,6 +438,15 @@ export default function App() {
           void engine.createSubregion(r)
         }}
         empty={empty}
+        floating={
+          <Button
+            className="show-controls"
+            icon={SlidersHorizontal}
+            onClick={() => setControlsHidden(false)}
+            title="Show controls"
+            aria-label="Show controls"
+          />
+        }
       />
       <Controls
         info={info}
@@ -448,6 +458,7 @@ export default function App() {
         pickingSubregion={pickingSub}
         compactPanes={compactPanes}
         setCompactPanes={setCompactPanes}
+        hide={() => setControlsHidden(true)}
         projectWarning={ready && store.notSaving}
         project={
           <ProjectPanel

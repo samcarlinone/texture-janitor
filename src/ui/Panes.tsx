@@ -49,6 +49,11 @@ interface Common {
   empty?: ReactNode
   /** Floating note over the pane (e.g. the edit-mode hint). */
   note?: ReactNode
+  /**
+   * Floating over the pane but outside its body, so clicks aren't taken by
+   * the pane's pointer capture.
+   */
+  floating?: ReactNode
 }
 
 export function ImagePaneView(
@@ -95,6 +100,7 @@ export function ImagePaneView(
         <div ref={ring} className="region-ring" />
         {p.empty}
       </div>
+      {p.floating}
     </PaneFrame>
   )
 }

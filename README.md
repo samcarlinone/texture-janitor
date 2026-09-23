@@ -4,12 +4,9 @@ A Fourier-domain image editor. The image is on the left, controls are in the mid
 2D spectrum is on the right. Paint on the spectrum and the image updates live, at the image's native
 resolution.
 
-```
-npm install
-npm run dev      # http://localhost:5173
-npm test         # FFT test suite (node --test)
-npm run build
-```
+# AI Usage
+
+This project was created largely by AI, I cannot guarantee the quality of the code nor the correctness of the results.
 
 ## Features
 

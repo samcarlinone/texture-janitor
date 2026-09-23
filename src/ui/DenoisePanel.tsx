@@ -2,6 +2,7 @@ import { Check, ScanEye, WandSparkles, X } from 'lucide-react'
 import { denoiseDefaults, type DenoiseAlgo, type NoiseModel, type Quality } from '../denoise/index.ts'
 import type { DenoisePlan, DenoiseSettings, EngineInfo, MemoryMode } from '../engine/engine.ts'
 import { Button } from './Button.tsx'
+import { Segmented } from './Segmented.tsx'
 import { formatBytes } from './format.ts'
 
 const ALGOS: { id: DenoiseAlgo; label: string; blurb: string }[] = [
@@ -21,24 +22,6 @@ const ALGOS: { id: DenoiseAlgo; label: string; blurb: string }[] = [
     blurb: 'Colour BM3D (Dabov et al.) with correlated-noise shrinkage (Mäkinen et al. 2020). Best quality, heaviest; bakes a checkpoint.',
   },
 ]
-
-function Seg<T extends string>(p: { value: T; options: { id: T; label: string }[]; onChange: (v: T) => void; disabled?: boolean }) {
-  return (
-    <div className="segmented">
-      {p.options.map((o) => (
-        <button
-          key={o.id}
-          type="button"
-          disabled={p.disabled}
-          className={o.id === p.value ? 'on' : ''}
-          onClick={() => p.onChange(o.id)}
-        >
-          <span className="text-trim">{o.label}</span>
-        </button>
-      ))}
-    </div>
-  )
-}
 
 function fmtSeconds(s: number): string {
   if (s < 1) return `${Math.max(1, Math.round(s * 1000))} ms`
@@ -71,11 +54,11 @@ export function DenoisePanel({ info, settings: s, set, plan, regionPlan, run, ca
 
   return (
     <>
-      <Seg value={s.algo} options={ALGOS} onChange={(algo) => choose({ algo })} disabled={!!busy} />
+      <Segmented value={s.algo} options={ALGOS} onChange={(algo) => choose({ algo })} disabled={!!busy} />
       <p className="hint">{algo.blurb}</p>
       <div className="field-row">
         <span>Quality</span>
-        <Seg<Quality>
+        <Segmented<Quality>
           value={s.quality}
           options={[
             { id: 'fast', label: 'Fast' },
@@ -92,7 +75,7 @@ export function DenoisePanel({ info, settings: s, set, plan, regionPlan, run, ca
           title="Measured: thresholds each frequency by the noise spectrum measured from the image — best for correlated noise (JPEG, heavy processing). White: one level for all frequencies — keeps a little more fine texture on clean sensor noise."
         >
           <span>Noise</span>
-          <Seg<NoiseModel>
+          <Segmented<NoiseModel>
             value={s.model}
             options={[
               { id: 'measured', label: 'Measured spectrum' },
@@ -106,7 +89,7 @@ export function DenoisePanel({ info, settings: s, set, plan, regionPlan, run, ca
       {spatial && (
         <div className="field-row" title="Tile size and parallel threads: lower uses less memory, higher is faster">
           <span>Memory</span>
-          <Seg<MemoryMode>
+          <Segmented<MemoryMode>
             value={s.memory}
             options={[
               { id: 'low', label: 'Low' },
