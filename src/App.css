@@ -986,6 +986,33 @@
     top: 0;
     z-index: 5;
     background: #2a2419;
+    /* Clear of the sticky hide button. */
+    padding-right: 56px;
+  }
+  /* The hide button stays in reach while the column scrolls: a zero-height
+     sticky row, with the button hanging from it (first at its place in the
+     title block, then 12px below the top edge). */
+  .hide-controls {
+    position: sticky;
+    top: 0;
+    z-index: 6;
+    height: 0;
+    justify-content: flex-end;
+    padding: 0 16px;
+    /* Lets the button ask whether the row is stuck (Chrome 133+). */
+    container-type: scroll-state;
+  }
+  .hide-controls .btn {
+    margin-top: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    transition: box-shadow 0.15s;
+  }
+  /* No shadow until content scrolls underneath. Browsers without
+     scroll-state queries skip this and always show it. */
+  @container not scroll-state(stuck: top) {
+    .hide-controls .btn {
+      box-shadow: none;
+    }
   }
 }
 

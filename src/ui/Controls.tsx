@@ -155,12 +155,15 @@ export function Controls({
 
   return (
     <aside className="controls">
+      {/* Outside .brand so it can stick while the column scrolls. */}
+      <div className="hide-controls mobile-only">
+        <Button icon={Minimize2} onClick={hide} title="Hide controls" aria-label="Hide controls" />
+      </div>
       <div className="brand">
         <div>
           <h1>Texture Janitor</h1>
           <p>Fourier-domain image editor</p>
         </div>
-        <Button className="mobile-only" icon={Minimize2} onClick={hide} title="Hide controls" aria-label="Hide controls" />
       </div>
       {info.subregion && (
         <div className="subregion-banner" role="status">
