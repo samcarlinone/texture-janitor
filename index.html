@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- The ICO (16 + 32 px, rendered from the SVG) is for browsers without SVG
+         favicons, e.g. Safari before 26; its explicit size keeps the others on the SVG. -->
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- iOS home screen / Safari favourites; a full square, iOS rounds it. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Texture Janitor</title>
     <meta
