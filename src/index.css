@@ -1,0 +1,134 @@
+:root {
+  --bg: #0d0e11;
+  --panel: #15161b;
+  --panel-2: #1c1d24;
+  --line: #2a2c35;
+  --text: #c9ccd6;
+  --text-dim: #7d8190;
+  --text-hi: #f2f3f7;
+  --accent: #5ee0ff;
+  --accent-ink: #062530;
+  --warn: #ffb547;
+  --danger: #ff6b6b;
+  /* Edit tones; keep in sync with TINT_* in engine/display.ts and TONE_COLOR in ui/tools.ts. */
+  --cut: #ff6040;
+  --boost: #4ade80;
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  color-scheme: dark;
+  font: 13px/1.4 var(--sans);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+button {
+  font: inherit;
+  color: var(--text-hi);
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+button svg {
+  flex: none;
+}
+button:hover:not(:disabled) {
+  border-color: #3b3e4a;
+  background: #23252e;
+}
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+button.on {
+  background: rgba(94, 224, 255, 0.14);
+  border-color: rgba(94, 224, 255, 0.55);
+  color: var(--accent);
+}
+
+/* The shared action button (ui/Button.tsx). Its typography is explicit, so
+   it doesn't pick up the style of wherever it sits (e.g. a section heading). */
+.btn {
+  font: 500 12.5px/1 var(--sans);
+  letter-spacing: normal;
+  text-transform: none;
+  height: 30px;
+  padding: 0 10px;
+}
+.btn-label {
+  /* A block container (not flex), so text-box trimming applies to it. */
+  display: inline-block;
+}
+.btn-label svg {
+  vertical-align: -2px;
+  margin-left: 4px;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #8be9ff;
+  border-color: #8be9ff;
+}
+.btn-on {
+  background: rgba(94, 224, 255, 0.14);
+  border-color: rgba(94, 224, 255, 0.55);
+  color: var(--accent);
+}
+.btn-block {
+  width: 100%;
+  justify-content: flex-start;
+}
+.btn-block kbd {
+  margin-left: auto;
+}
+
+/* Shortcut hints: a fixed-height box with its text centred in it, so it
+   lines up with icons and labels regardless of the surrounding line-height. */
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 16px;
+  min-width: 16px;
+  padding: 0 4px;
+  font: 10px/1 var(--mono);
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+}
+
+/* Trim text to the capital height and the baseline, dropping the space
+   reserved above and below for accents and descenders, so flex centring
+   centres the letters themselves. Unsupported browsers ignore it. */
+.btn-label,
+kbd > span,
+.tool > span,
+.text-trim {
+  text-box: trim-both cap alphabetic;
+}

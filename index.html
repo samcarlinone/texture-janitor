@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Texture Janitor</title>
+    <meta
+      name="description"
+      content="Open, edit and save .tj files in your browser. A .tj file is a Texture Janitor project: an image with its Fourier-spectrum edits, checkpoints and full undo history. Free, no install, nothing uploaded."
+    />
+    <meta name="application-name" content="Texture Janitor" />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Texture Janitor" />
+    <meta property="og:title" content="Texture Janitor" />
+    <meta
+      property="og:description"
+      content="Open and edit .tj Texture Janitor projects in your browser. Paint on an image's 2D spectrum, denoise with BM3D or NL-means, and export full-resolution PNGs."
+    />
+    <meta name="twitter:card" content="summary" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Texture Janitor",
+        "description": "A browser-based Fourier-domain image editor. Opens and saves .tj project files, which store an image together with its spectrum edits, checkpoints and full undo/redo history.",
+        "applicationCategory": "MultimediaApplication",
+        "applicationSubCategory": "Image editor",
+        "operatingSystem": "Any (web browser)",
+        "browserRequirements": "Requires a modern browser with SharedArrayBuffer support",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "featureList": [
+          "Open .tj project files",
+          "Save projects as .tj files with autosave",
+          "Paint on the 2D Fourier spectrum of an image",
+          "Notch filters and frequency-band selections",
+          "Spectral Wiener, non-local means and BM3D denoising",
+          "Full-resolution PNG export"
+        ],
+        "fileFormat": "application/x-texture-janitor"
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>
+      <h1>Texture Janitor: .tj file opener and Fourier image editor</h1>
+      <p>
+        Texture Janitor opens and saves <strong>.tj files</strong>. A .tj file is a Texture Janitor project: an
+        image plus its spectrum edits, checkpoints and full undo history, stored as an append-only log of
+        compressed records. Enable JavaScript to open a .tj file.
+      </p>
+    </noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
