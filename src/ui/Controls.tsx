@@ -1,5 +1,6 @@
 import {
   BookmarkPlus,
+  Bug,
   SquareDashedMousePointer,
   TriangleAlert,
   ChevronRight,
@@ -7,6 +8,7 @@ import {
   Minimize2,
   Circle,
   Download,
+  ExternalLink,
   Eraser,
   FlaskConical,
   FolderOpen,
@@ -25,6 +27,7 @@ import type { Shape } from '../engine/layout.ts'
 import type { SpectrumTool } from './spectrumPane.ts'
 import { Button } from './Button.tsx'
 import { formatMs } from './format.ts'
+import { GithubIcon } from './GithubIcon.tsx'
 import { KeyLabel } from './KeyLabel.tsx'
 import { shortcut } from './keys.ts'
 import { Segmented } from './Segmented.tsx'
@@ -564,6 +567,19 @@ export function Controls({
         <Button icon={GraduationCap} onClick={a.startTour}>
           Start interactive tutorial
         </Button>
+        <a className="help-link" href="https://github.com/samcarlinone/texture-janitor/issues" target="_blank" rel="noreferrer">
+          <Bug size={13} aria-hidden />
+          Report an issue
+          <ExternalLink size={11} aria-hidden />
+        </a>
+      </Section>
+
+      <Section title="Source">
+        <a className="help-link" href="https://github.com/samcarlinone/texture-janitor" target="_blank" rel="noreferrer">
+          <GithubIcon size={13} />
+          Source on GitHub
+          <ExternalLink size={11} aria-hidden />
+        </a>
       </Section>
       </div>
       <label className="check check-wrap mobile-only compact-toggle">
