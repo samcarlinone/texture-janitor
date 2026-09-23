@@ -1,6 +1,7 @@
 import { FileClock, FolderOpen, Save, SaveAll } from 'lucide-react'
 import type { ProjectStatus } from '../project/store.ts'
 import { Button } from './Button.tsx'
+import { shortcut } from './keys.ts'
 
 interface Props {
   status: ProjectStatus
@@ -42,7 +43,7 @@ export function ProjectPanel({ status: s, ready, save, saveAs, open, reopen, set
           icon={Save}
           busy={s.saving}
           variant={s.fileName ? 'default' : 'primary'}
-          kbd="⌘S"
+          kbd={shortcut('Mod+S')}
           disabled={!ready || s.saving}
           onClick={save}
           title={s.fileName ? `Save to ${s.fileName}` : 'Choose a file and save the project'}

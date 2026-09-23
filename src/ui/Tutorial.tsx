@@ -2,6 +2,7 @@ import { ArrowRight, Check, X } from 'lucide-react'
 import { useEffect, useEffectEvent, useState, type ReactNode } from 'react'
 import type { Engine, EngineInfo } from '../engine/engine.ts'
 import { Button } from './Button.tsx'
+import { shortcut } from './keys.ts'
 import type { ControlState } from './Controls.tsx'
 import { DEMO_NOT_SKY, demoOffSky } from './demo.ts'
 
@@ -149,7 +150,7 @@ const STEPS: Step[] = [
             : 'All the circled spikes are gone, and so is their pattern in the image.'}
         </p>
         <p className="tour-dim">
-          Removed too much? Undo with ⌘Z, or switch to the <b>Restore</b> brush (R) and paint it back.
+          Removed too much? Undo with {shortcut('Mod+Z')}, or switch to the <b>Restore</b> brush (R) and paint it back.
         </p>
       </>
     ),

@@ -53,9 +53,14 @@ button {
 button svg {
   flex: none;
 }
-button:hover:not(:disabled) {
-  border-color: #3b3e4a;
-  background: #23252e;
+/* Hover styles only where hover is real: touch screens leave :hover stuck
+   on the last tapped button, which hid the highlight of a just-chosen tool.
+   Toggled-on buttons keep their own look under the pointer. */
+@media (hover: hover) {
+  button:hover:not(:disabled, .on) {
+    border-color: #3b3e4a;
+    background: #23252e;
+  }
 }
 button:disabled {
   opacity: 0.4;
@@ -90,9 +95,11 @@ button.on {
   color: var(--accent-ink);
   font-weight: 600;
 }
-.btn-primary:hover:not(:disabled) {
-  background: #8be9ff;
-  border-color: #8be9ff;
+@media (hover: hover) {
+  .btn-primary:hover:not(:disabled) {
+    background: #8be9ff;
+    border-color: #8be9ff;
+  }
 }
 .btn-block {
   width: 100%;
@@ -116,6 +123,14 @@ kbd {
   color: var(--text-dim);
   border: 1px solid var(--line);
   border-radius: 3px;
+}
+kbd svg {
+  margin-right: 1px;
+}
+/* On the light accent fill, the dim-grey default nearly vanishes. */
+.btn-primary kbd {
+  color: var(--accent-ink);
+  border-color: color-mix(in srgb, var(--accent-ink) 35%, transparent);
 }
 
 /* Trim text to the capital height and the baseline, dropping the space

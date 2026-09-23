@@ -383,6 +383,10 @@
   font: 11px var(--mono);
   color: var(--text-hi);
 }
+/* ⌘ / ⇧ icons (KeyLabel), sat on the text's baseline. */
+.shortcuts dt svg {
+  vertical-align: -1px;
+}
 .shortcuts dd {
   margin: 0;
   color: var(--text-dim);
@@ -473,8 +477,10 @@
   border-color: transparent;
   color: var(--text-dim);
 }
-.btn-ghost:hover:not(:disabled) {
-  color: var(--danger);
+@media (hover: hover) {
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--danger);
+  }
 }
 .spin {
   animation: spin 0.8s linear infinite;
@@ -642,9 +648,11 @@
   letter-spacing: inherit;
   text-transform: inherit;
 }
-.section-toggle:hover:not(:disabled) {
-  background: none;
-  color: var(--text-hi);
+@media (hover: hover) {
+  .section-toggle:hover:not(:disabled) {
+    background: none;
+    color: var(--text-hi);
+  }
 }
 .section-toggle .chevron {
   transition: transform 0.15s;

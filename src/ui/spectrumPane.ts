@@ -36,6 +36,8 @@ export class SpectrumPaneController extends PaneController {
   private readonly over: CanvasRenderingContext2D
   private image: ImageData | null = null
   private stroking = false
+  /** The pointer is over the spectrum itself (not the empty pane around it). */
+  private overContent = false
   private drag: { x0: number; y0: number; x1: number; y1: number } | null = null
 
   constructor(root: HTMLElement, base: HTMLCanvasElement, over: HTMLCanvasElement, engine: Engine) {
@@ -47,9 +49,22 @@ export class SpectrumPaneController extends PaneController {
   setProps(p: SpectrumPaneProps): void {
     const prev = this.props
     this.props = p
-    this.setCursor(p.blocked && p.tool !== 'select' ? 'not-allowed' : p.tool === 'select' ? 'crosshair' : 'none')
+    this.updateCursor()
     if (!prev || prev.lut !== p.lut || prev.overlay !== p.overlay || prev.localView !== p.localView) this.invalidate(0)
     this.invalidate(1)
+  }
+
+  /**
+   * Brushes draw their own outline, so the system cursor is hidden while
+   * over the spectrum or mid-stroke. Over the empty pane around it the
+   * normal cursor stays, so the pointer doesn't just vanish.
+   */
+  private updateCursor(): void {
+    const p = this.props
+    if (!p) return
+    if (p.tool === 'select') this.setCursor('crosshair')
+    else if (p.blocked) this.setCursor('not-allowed')
+    else this.setCursor(this.stroking || this.overContent ? 'none' : '')
   }
 
   protected contentSize(): [number, number] | null {
@@ -65,6 +80,7 @@ export class SpectrumPaneController extends PaneController {
       return true
     }
     this.stroking = true
+    this.updateCursor()
     this.engine.beginStroke({ ...p.brush, tool: p.tool })
     this.engine.strokeTo(x, y)
     e.preventDefault()
@@ -90,6 +106,7 @@ export class SpectrumPaneController extends PaneController {
     if (this.stroking) {
       this.stroking = false
       this.engine.cancelStroke()
+      this.updateCursor()
     }
     this.drag = null
   }
@@ -98,6 +115,7 @@ export class SpectrumPaneController extends PaneController {
     if (this.stroking) {
       this.stroking = false
       this.engine.endStroke()
+      this.updateCursor()
     }
     const g = this.drag
     if (g && this.props) {
@@ -109,6 +127,12 @@ export class SpectrumPaneController extends PaneController {
 
   protected onHover(p: [number, number] | null): void {
     if (!this.props) return
+    const d = this.engine.dims
+    const over = !!p && !!d && p[0] >= 0 && p[1] >= 0 && p[0] < d.w && p[1] < d.h
+    if (over !== this.overContent) {
+      this.overContent = over
+      this.updateCursor()
+    }
     const b = p ? this.engine.binInfo(Math.floor(p[0]), Math.floor(p[1])) : null
     if (!b) return this.onHoverText('')
     const parts = [

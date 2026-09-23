@@ -25,6 +25,8 @@ import type { Shape } from '../engine/layout.ts'
 import type { SpectrumTool } from './spectrumPane.ts'
 import { Button } from './Button.tsx'
 import { formatMs } from './format.ts'
+import { KeyLabel } from './KeyLabel.tsx'
+import { shortcut } from './keys.ts'
 import { Segmented } from './Segmented.tsx'
 import { Slider } from './Slider.tsx'
 import { readPref, writePref } from './storage.ts'
@@ -379,10 +381,10 @@ export function Controls({
 
       <Section title="History">
         <div className="row">
-          <Button icon={Undo2} disabled={!info.canUndo} onClick={a.undo} title="Undo (⌘Z)">
+          <Button icon={Undo2} disabled={!info.canUndo} onClick={a.undo} title={`Undo (${shortcut('Mod+Z')})`}>
             Undo
           </Button>
-          <Button icon={Redo2} disabled={!info.canRedo} onClick={a.redo} title="Redo (⇧⌘Z)">
+          <Button icon={Redo2} disabled={!info.canRedo} onClick={a.redo} title={`Redo (${shortcut('Shift+Mod+Z')})`}>
             Redo
           </Button>
           <Button icon={RotateCcw} disabled={!info.edited} onClick={a.reset} title="Restore every bin (undoable)">
@@ -550,7 +552,9 @@ export function Controls({
           <dd>Magnifier over the image (also after a slow, steady drag)</dd>
           <dt>Delete</dt>
           <dd>Remove selected frequencies</dd>
-          <dt>⌘Z / ⇧⌘Z</dt>
+          <dt>
+            <KeyLabel label={shortcut('Mod+Z')} size={11} /> / <KeyLabel label={shortcut('Shift+Mod+Z')} size={11} />
+          </dt>
           <dd>Undo / redo</dd>
         </dl>
       </Section>

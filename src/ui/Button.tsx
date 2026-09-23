@@ -1,5 +1,6 @@
 import { LoaderCircle, type LucideIcon } from 'lucide-react'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { KeyLabel } from './KeyLabel.tsx'
 
 interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
   /** Leading icon. */
@@ -31,7 +32,7 @@ export function Button({ icon: Icon, busy, kbd, variant = 'default', active, blo
       {children !== undefined && <span className="btn-label">{children}</span>}
       {kbd && (
         <kbd>
-          <span>{kbd}</span>
+          <KeyLabel label={kbd} />
         </kbd>
       )}
     </button>
