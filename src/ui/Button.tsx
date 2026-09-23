@@ -8,7 +8,8 @@ interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'typ
   busy?: boolean
   /** Keyboard shortcut hint, shown after the label. */
   kbd?: string
-  variant?: 'default' | 'primary'
+  /** 'ghost': borderless, dim icon-only button (delete, dismiss, cancel). */
+  variant?: 'default' | 'primary' | 'ghost'
   /** Toggled-on state (e.g. a mode that's waiting for input). */
   active?: boolean
   /** Full width, with the shortcut hint pushed to the right edge. */
@@ -21,7 +22,7 @@ interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'typ
  * same wherever it's placed (including inside section headings).
  */
 export function Button({ icon: Icon, busy, kbd, variant = 'default', active, block, className, children, ...rest }: ButtonProps) {
-  const cls = ['btn', variant === 'primary' && 'btn-primary', active && 'btn-on', block && 'btn-block', className]
+  const cls = ['btn', variant !== 'default' && `btn-${variant}`, active && 'on', block && 'btn-block', className]
     .filter(Boolean)
     .join(' ')
   return (

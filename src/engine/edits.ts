@@ -130,11 +130,6 @@ export class EditField {
     return { undo: this.undoStack, redo: this.redoStack }
   }
 
-  /** Tiles per channel (keys are channel * nTiles + tile). */
-  get tileCount(): number {
-    return this.nTiles
-  }
-
   /** Changed tile keys since the last call (and reset), or 'all'. */
   takeDirty(): number[] | 'all' {
     const d = this.dirty

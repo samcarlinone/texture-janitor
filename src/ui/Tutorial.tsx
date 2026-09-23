@@ -1,4 +1,4 @@
-import { ArrowRight, Check, GraduationCap, X } from 'lucide-react'
+import { ArrowRight, Check, X } from 'lucide-react'
 import { useEffect, useEffectEvent, useState, type ReactNode } from 'react'
 import type { Engine, EngineInfo } from '../engine/engine.ts'
 import { Button } from './Button.tsx'
@@ -356,9 +356,7 @@ export function Tutorial({ onClose, ...ctx }: TutorialProps) {
           <span className="tour-step">
             {state.i + 1} / {STEPS.length}
           </span>
-          <button type="button" className="icon-button" onClick={close} title="End tour">
-            <X size={14} aria-hidden />
-          </button>
+          <Button variant="ghost" icon={X} onClick={close} title="End tour" />
         </div>
         <h4>
           {nextStep !== null && <Check size={15} className="tour-check" aria-hidden />}
@@ -397,23 +395,5 @@ export function Tutorial({ onClose, ...ctx }: TutorialProps) {
         </div>
       </div>
     </>
-  )
-}
-
-export function TourToast({ onStart, onDismiss }: { onStart: () => void; onDismiss: () => void }) {
-  return (
-    <div className="tour-toast" role="status">
-      <GraduationCap size={18} className="tour-toast-icon" aria-hidden />
-      <div>
-        <b>New to Texture Janitor?</b>
-        <p>Take a one-minute tour: pick out a repeating texture and paint it out of the spectrum.</p>
-        <div className="row">
-          <Button variant="primary" onClick={onStart}>
-            Start tour
-          </Button>
-          <Button onClick={onDismiss}>Don&apos;t show again</Button>
-        </div>
-      </div>
-    </div>
   )
 }

@@ -24,7 +24,10 @@ import type { EngineInfo } from '../engine/engine.ts'
 import type { Shape } from '../engine/layout.ts'
 import type { SpectrumTool } from './spectrumPane.ts'
 import { Button } from './Button.tsx'
+import { formatMs } from './format.ts'
 import { Segmented } from './Segmented.tsx'
+import { Slider } from './Slider.tsx'
+import { readPref, writePref } from './storage.ts'
 import { TOOLS } from './tools.ts'
 
 export interface ControlState {
@@ -106,22 +109,11 @@ function Section({
   storageKey?: string
   className?: string
 }) {
-  const [open, setOpen] = useState(() => {
-    if (!collapsible) return true
-    try {
-      return storageKey ? localStorage.getItem(storageKey) === '1' : false
-    } catch {
-      return false
-    }
-  })
+  const [open, setOpen] = useState(() => !collapsible || (!!storageKey && readPref(storageKey) === '1'))
   const toggle = () => {
     const next = !open
     setOpen(next)
-    try {
-      if (storageKey) localStorage.setItem(storageKey, next ? '1' : '0')
-    } catch {
-      // Storage may be unavailable (private mode); the section still toggles.
-    }
+    if (storageKey) writePref(storageKey, next ? '1' : '0')
   }
   return (
     <section className={`ctl-section ${collapsible && !open ? 'collapsed' : ''} ${className ?? ''}`}>
@@ -139,36 +131,6 @@ function Section({
       {open && children}
     </section>
   )
-}
-
-function Slider(p: {
-  label: string
-  value: number
-  min: number
-  max: number
-  step?: number
-  display: string
-  onChange: (v: number) => void
-  title?: string
-}) {
-  return (
-    <label className="slider" title={p.title}>
-      <span className="slider-label">{p.label}</span>
-      <span className="slider-value">{p.display}</span>
-      <input
-        type="range"
-        min={p.min}
-        max={p.max}
-        step={p.step ?? 'any'}
-        value={p.value}
-        onChange={(e) => p.onChange(Number(e.target.value))}
-      />
-    </label>
-  )
-}
-
-function fmtMs(ms: number): string {
-  return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${ms.toFixed(0)} ms`
 }
 
 export function Controls({
@@ -233,8 +195,8 @@ export function Controls({
               {info.w} × {info.h} px · {info.workers} threads
             </div>
             <div>
-              FFT {fmtMs(info.forwardMs)} · full {info.lastFullMs ? fmtMs(info.lastFullMs) : '—'}
-              {!info.fastFull && <> · preview {info.lastPreviewMs ? fmtMs(info.lastPreviewMs) : '—'}</>}
+              FFT {formatMs(info.forwardMs)} · full {info.lastFullMs ? formatMs(info.lastFullMs) : '—'}
+              {!info.fastFull && <> · preview {info.lastPreviewMs ? formatMs(info.lastPreviewMs) : '—'}</>}
             </div>
             <div className={`state ${info.upToDate ? 'ok' : 'busy'}`}>
               <i />
@@ -285,11 +247,12 @@ export function Controls({
             <Slider
               label="Size"
               title="Brush radius in frequency bins ( [ and ] )"
-              value={Math.log(s.radius)}
-              min={Math.log(0.5)}
-              max={Math.log(maxRadius)}
+              log
+              value={s.radius}
+              min={0.5}
+              max={maxRadius}
               display={`${s.radius < 10 ? s.radius.toFixed(1) : Math.round(s.radius)} bins`}
-              onChange={(v) => set({ radius: Math.exp(v) })}
+              onChange={(v) => set({ radius: v })}
             />
             <Slider
               label="Hardness"
@@ -310,11 +273,12 @@ export function Controls({
             {s.tool === 'amplify' && (
               <Slider
                 label="Gain"
-                value={Math.log(s.gain)}
-                min={0}
-                max={Math.log(20)}
+                log
+                value={s.gain}
+                min={1}
+                max={20}
                 display={`${s.gain.toFixed(2)}×`}
-                onChange={(v) => set({ gain: Math.exp(v) })}
+                onChange={(v) => set({ gain: v })}
               />
             )}
             {sel && (
@@ -476,15 +440,13 @@ export function Controls({
                   </span>
                 </button>
                 {!base && (
-                  <button
-                    type="button"
-                    className="icon-button"
+                  <Button
+                    variant="ghost"
+                    icon={Trash2}
                     disabled={info.switching}
                     onClick={() => a.deleteCheckpoint(c.id)}
                     title={active ? `Delete ${c.label} and its edits, and switch to the one below` : `Delete ${c.label}`}
-                  >
-                    <Trash2 size={13} aria-hidden />
-                  </button>
+                  />
                 )}
               </li>
             )
@@ -549,11 +511,12 @@ export function Controls({
         />
         <Slider
           label="Gamma"
-          value={Math.log(s.gamma)}
-          min={Math.log(0.3)}
-          max={Math.log(3)}
+          log
+          value={s.gamma}
+          min={0.3}
+          max={3}
           display={s.gamma.toFixed(2)}
-          onChange={(v) => set({ gamma: Math.exp(v) })}
+          onChange={(v) => set({ gamma: v })}
         />
         <label className="check">
           <input type="checkbox" checked={s.overlay} onChange={(e) => set({ overlay: e.target.checked })} />
@@ -593,7 +556,7 @@ export function Controls({
         </Button>
       </Section>
       </div>
-      <label className="check mobile-only compact-toggle">
+      <label className="check check-wrap mobile-only compact-toggle">
         <input type="checkbox" checked={compactPanes} onChange={(e) => setCompactPanes(e.target.checked)} />
         <span>Compact panes: hide the image header, zoom buttons and coordinates</span>
       </label>

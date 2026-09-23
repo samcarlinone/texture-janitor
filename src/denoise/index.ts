@@ -1,6 +1,6 @@
 export { toOpponent, fromOpponent, type Planes } from './color.ts'
 export { estimateSigma, estimateNoiseRGBA, type NoiseEstimate } from './noise.ts'
-export { padReflect, crop } from './pad.ts'
+export { padReflect } from './pad.ts'
 export { nlm, nlmParams, nlmHalo, type NlmParams } from './nlm.ts'
 export { bm3d, bm3dParams, bm3dHalo, type Bm3dParams } from './bm3d.ts'
 export { wienerGains } from './wiener.ts'

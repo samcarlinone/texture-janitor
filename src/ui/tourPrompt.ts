@@ -1,19 +1,13 @@
+import { readPref, writePref } from './storage.ts'
+
 /** Remembers whether the first-visit tour prompt was answered. */
 const STORAGE_KEY = 'tj.tour'
 
-/** Has the first-visit prompt been answered (started or dismissed)? */
+/** Has the first-visit prompt been answered (started or dismissed)? Without storage it shows again next visit. */
 export function tourPromptAnswered(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) !== null
-  } catch {
-    return false
-  }
+  return readPref(STORAGE_KEY) !== null
 }
 
 export function answerTourPrompt(answer: 'started' | 'dismissed'): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, answer)
-  } catch {
-    // Without storage the prompt simply shows again next visit.
-  }
+  writePref(STORAGE_KEY, answer)
 }

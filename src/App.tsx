@@ -1,5 +1,5 @@
 import { SlidersHorizontal } from 'lucide-react'
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useEffectEvent, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import './App.css'
 import { makeLut } from './engine/colormap.ts'
 import { denoiseDefaults } from './denoise/index.ts'
@@ -9,14 +9,14 @@ import { Button } from './ui/Button.tsx'
 import { Segmented } from './ui/Segmented.tsx'
 import { DenoisePanel } from './ui/DenoisePanel.tsx'
 import { MemoryMeter } from './ui/MemoryMeter.tsx'
-import { makeDemo } from './ui/demo.ts'
 import type { ImagePaneController } from './ui/imagePane.ts'
 import { held } from './ui/keys.ts'
 import { ImagePaneView, SpectrumPaneView } from './ui/Panes.tsx'
 import type { SpectrumPaneController } from './ui/spectrumPane.ts'
 import { TOOLS } from './ui/tools.ts'
+import { readPref, writePref } from './ui/storage.ts'
 import { answerTourPrompt, tourPromptAnswered } from './ui/tourPrompt.ts'
-import { TourToast, Tutorial } from './ui/Tutorial.tsx'
+import { TourToast } from './ui/TourToast.tsx'
 import { ProjectStore } from './project/store.ts'
 import { ProjectPanel } from './ui/ProjectPanel.tsx'
 
@@ -36,6 +36,9 @@ const INITIAL: ControlState = {
   viewMode: 'local',
   heatOpacity: 0.8,
 }
+
+// Only needed once asked for, so kept out of the initial bundle.
+const Tutorial = lazy(() => import('./ui/Tutorial.tsx').then((m) => ({ default: m.Tutorial })))
 
 const COMPACT_KEY = 'tj.compactPanes'
 
@@ -107,20 +110,10 @@ export default function App() {
   const [compares, setCompares] = useState(0)
   const [pickingSub, setPickingSub] = useState(false)
   // Phone layout only; remembered per browser, on unless turned off.
-  const [compactPanes, setCompactPanesState] = useState(() => {
-    try {
-      return localStorage.getItem(COMPACT_KEY) !== '0'
-    } catch {
-      return true
-    }
-  })
+  const [compactPanes, setCompactPanesState] = useState(() => readPref(COMPACT_KEY) !== '0')
   const setCompactPanes = (on: boolean) => {
     setCompactPanesState(on)
-    try {
-      localStorage.setItem(COMPACT_KEY, on ? '1' : '0')
-    } catch {
-      // Storage unavailable (private mode): the choice lasts for this visit.
-    }
+    writePref(COMPACT_KEY, on ? '1' : '0')
   }
   // Phone layout only: the controls row can be hidden to give the panes the whole screen.
   const [controlsHidden, setControlsHidden] = useState(false)
@@ -170,9 +163,10 @@ export default function App() {
 
   const actions: ControlActions = {
     open: () => fileInput.current?.click(),
-    demo: () => {
+    demo: async () => {
+      const { makeDemo } = await import('./ui/demo.ts')
       const { data, w, h } = makeDemo()
-      void engine.loadGenerated(data, w, h, 'demo.png')
+      await engine.loadGenerated(data, w, h, 'demo.png')
     },
     exportPng: async () => {
       setExporting(true)
@@ -503,15 +497,17 @@ export default function App() {
       />
       {ready && !info.upToDate && <div className="busy-bar" />}
       {touring && (
-        <Tutorial
-          engine={engine}
-          info={info}
-          controls={s}
-          set={set}
-          loadDemo={actions.demo}
-          compares={compares}
-          onClose={() => setTouring(false)}
-        />
+        <Suspense>
+          <Tutorial
+            engine={engine}
+            info={info}
+            controls={s}
+            set={set}
+            loadDemo={actions.demo}
+            compares={compares}
+            onClose={() => setTouring(false)}
+          />
+        </Suspense>
       )}
       {toast && !touring && (
         <TourToast

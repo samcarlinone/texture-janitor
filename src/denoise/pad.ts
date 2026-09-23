@@ -22,10 +22,3 @@ export function padReflect(p: Float32Array, w: number, h: number, l: number, t: 
   }
   return out
 }
-
-/** Copy the (x0, y0, w, h) window out of a plane of width pw. */
-export function crop(p: Float32Array, pw: number, x0: number, y0: number, w: number, h: number): Float32Array {
-  const out = new Float32Array(w * h)
-  for (let y = 0; y < h; y++) out.set(p.subarray((y0 + y) * pw + x0, (y0 + y) * pw + x0 + w), y * w)
-  return out
-}

@@ -3,7 +3,8 @@ import { denoiseDefaults, type DenoiseAlgo, type NoiseModel, type Quality } from
 import type { DenoisePlan, DenoiseSettings, EngineInfo, MemoryMode } from '../engine/engine.ts'
 import { Button } from './Button.tsx'
 import { Segmented } from './Segmented.tsx'
-import { formatBytes } from './format.ts'
+import { formatBytes, formatEstimate } from './format.ts'
+import { Slider } from './Slider.tsx'
 
 const ALGOS: { id: DenoiseAlgo; label: string; blurb: string }[] = [
   {
@@ -22,12 +23,6 @@ const ALGOS: { id: DenoiseAlgo; label: string; blurb: string }[] = [
     blurb: 'Colour BM3D (Dabov et al.) with correlated-noise shrinkage (Mäkinen et al. 2020). Best quality, heaviest; bakes a checkpoint.',
   },
 ]
-
-function fmtSeconds(s: number): string {
-  if (s < 1) return `${Math.max(1, Math.round(s * 1000))} ms`
-  if (s < 90) return `${s.toFixed(s < 10 ? 1 : 0)} s`
-  return `${Math.round(s / 60)} min`
-}
 
 interface Props {
   info: EngineInfo
@@ -101,35 +96,27 @@ export function DenoisePanel({ info, settings: s, set, plan, regionPlan, run, ca
           />
         </div>
       )}
-      <label className="slider" title="Multiplies the estimated noise level (defaults are calibrated on real camera noise)">
-        <span className="slider-label">Strength</span>
-        <span className="slider-value">
-          {s.strength.toFixed(2)}×{plan ? ` · σ ${plan.sigma[0].toFixed(1)}` : ''}
-        </span>
-        <input
-          type="range"
-          min={Math.log(0.25)}
-          max={Math.log(4)}
-          step="any"
-          value={Math.log(s.strength)}
-          onChange={(e) => set({ strength: Math.exp(Number(e.target.value)) })}
-        />
-      </label>
+      <Slider
+        label="Strength"
+        title="Multiplies the estimated noise level (defaults are calibrated on real camera noise)"
+        log
+        value={s.strength}
+        min={0.25}
+        max={4}
+        display={`${s.strength.toFixed(2)}×${plan ? ` · σ ${plan.sigma[0].toFixed(1)}` : ''}`}
+        onChange={(strength) => set({ strength })}
+      />
       {spatial && (
-        <label className="slider" title="Extra multiplier on colour noise, which is often much stronger than luminance noise">
-          <span className="slider-label">Chroma</span>
-          <span className="slider-value">
-            {s.chroma.toFixed(2)}×{plan ? ` · σ ${Math.max(plan.sigma[1], plan.sigma[2]).toFixed(1)}` : ''}
-          </span>
-          <input
-            type="range"
-            min={Math.log(0.5)}
-            max={Math.log(4)}
-            step="any"
-            value={Math.log(s.chroma)}
-            onChange={(e) => set({ chroma: Math.exp(Number(e.target.value)) })}
-          />
-        </label>
+        <Slider
+          label="Chroma"
+          title="Extra multiplier on colour noise, which is often much stronger than luminance noise"
+          log
+          value={s.chroma}
+          min={0.5}
+          max={4}
+          display={`${s.chroma.toFixed(2)}×${plan ? ` · σ ${Math.max(plan.sigma[1], plan.sigma[2]).toFixed(1)}` : ''}`}
+          onChange={(chroma) => set({ chroma })}
+        />
       )}
       {n && (
         <p className="hint mono">
@@ -139,7 +126,7 @@ export function DenoisePanel({ info, settings: s, set, plan, regionPlan, run, ca
       )}
       {plan && !busy && (
         <p className="hint mono">
-          ≈ {fmtSeconds(plan.seconds)} · {formatBytes(plan.peakBytes)} peak
+          ≈ {formatEstimate(plan.seconds)} · {formatBytes(plan.peakBytes)} peak
           {spatial && ` · ${plan.tiles} tile${plan.tiles === 1 ? '' : 's'} · ${plan.threads} thread${plan.threads === 1 ? '' : 's'}`}
         </p>
       )}
@@ -151,9 +138,7 @@ export function DenoisePanel({ info, settings: s, set, plan, regionPlan, run, ca
           <span className="mono">
             {busy.done}/{busy.total}
           </span>
-          <button type="button" className="icon-button" onClick={cancel} title="Cancel">
-            <X size={14} aria-hidden />
-          </button>
+          <Button variant="ghost" icon={X} onClick={cancel} title="Cancel" />
         </div>
       ) : (
         <div className="row">
@@ -164,7 +149,7 @@ export function DenoisePanel({ info, settings: s, set, plan, regionPlan, run, ca
               onClick={() => run('region')}
               title={
                 info.region
-                  ? `Preview on the picked region${regionPlan ? ` (≈ ${fmtSeconds(regionPlan.seconds)})` : ''}`
+                  ? `Preview on the picked region${regionPlan ? ` (≈ ${formatEstimate(regionPlan.seconds)})` : ''}`
                   : 'Pick a region on the image to preview quickly'
               }
             >
@@ -181,9 +166,7 @@ export function DenoisePanel({ info, settings: s, set, plan, regionPlan, run, ca
           <span>
             Previewing <b>{info.denoisePreview}</b> in the region. Hold C to compare.
           </span>
-          <button type="button" className="icon-button" onClick={discardPreview} title="Discard preview">
-            <X size={13} aria-hidden />
-          </button>
+          <Button variant="ghost" icon={X} onClick={discardPreview} title="Discard preview" />
         </div>
       )}
       {spatial && !info.region && (

@@ -466,13 +466,14 @@
 .checkpoints li.active .checkpoint-sub {
   color: var(--accent);
 }
-.icon-button {
+.btn-ghost {
+  height: auto;
   padding: 5px;
   background: transparent;
   border-color: transparent;
   color: var(--text-dim);
 }
-.icon-button:hover:not(:disabled) {
+.btn-ghost:hover:not(:disabled) {
   color: var(--danger);
 }
 .spin {
@@ -961,15 +962,6 @@
   padding: 10px 16px;
   border-top: 1px solid var(--line);
   color: var(--text);
-  /* Checkbox and text on one line; the text wraps within its own block. */
-  flex-wrap: nowrap;
-  align-items: flex-start;
-  line-height: 1.4;
-}
-.compact-toggle input {
-  flex: none;
-  /* Centre the box on the first line of text. */
-  margin-top: 2px;
 }
 @media (max-width: 900px) {
   .mobile-only {
@@ -989,13 +981,15 @@
   display: inline-flex;
   color: inherit;
 }
-.compact-toggle-like {
+/* A checkbox with a long label: box and text on one line, the text wrapping within its own block. */
+.check-wrap {
   flex-wrap: nowrap;
   align-items: flex-start;
   line-height: 1.4;
 }
-.compact-toggle-like input {
+.check-wrap input {
   flex: none;
+  /* Centre the box on the first line of text. */
   margin-top: 2px;
 }
 

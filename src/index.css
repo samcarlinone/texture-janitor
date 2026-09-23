@@ -94,11 +94,6 @@ button.on {
   background: #8be9ff;
   border-color: #8be9ff;
 }
-.btn-on {
-  background: rgba(94, 224, 255, 0.14);
-  border-color: rgba(94, 224, 255, 0.55);
-  color: var(--accent);
-}
 .btn-block {
   width: 100%;
   justify-content: flex-start;

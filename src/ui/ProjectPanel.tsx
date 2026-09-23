@@ -64,7 +64,7 @@ export function ProjectPanel({ status: s, ready, save, saveAs, open, reopen, set
         </Button>
       )}
       {s.supported ? (
-        <label className="check compact-toggle-like">
+        <label className="check check-wrap">
           <input
             type="checkbox"
             checked={s.autosave}

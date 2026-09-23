@@ -433,7 +433,16 @@ export class ProjectStore {
     const h = this.reopenHandle
     if (!h) return
     if ((await h.requestPermission?.({ mode: 'readwrite' })) === 'denied') return
-    await this.openHandle(h)
+    let file: File
+    try {
+      file = await h.getFile()
+    } catch {
+      // Moved or deleted since the last visit.
+      await this.forgetRemembered()
+      this.set({ error: `Couldn't find ${h.name} any more` })
+      return
+    }
+    await this.open(file, h)
   }
 
   async openHandle(handle: FileSystemFileHandle): Promise<void> {
